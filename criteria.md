@@ -25,7 +25,7 @@ contains the answer.
 **Why this target:**
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
-
+I chose 4 out of 5 because each of my questions has an answer in the documents I selected, so I expect the system to retrieve the correct information most of the time. I still allowed for one question to be missed because retrieval may not always return the best chunk.
 ---
 
 ## 2. Every answer names a source
@@ -35,7 +35,7 @@ Every answer the system produces names at least one source document.
 **Why this target:**
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
-
+I chose every answer because my system is supposed to answer questions using the documents in my corpus. Naming a source for every answer lets the user know where the information came from and makes the answer easier to verify.
 ---
 
 ## 3. The relevance gate stops out-of-corpus questions
@@ -52,7 +52,7 @@ in at least 4 of 5 tries.
 **Why this target:**
 <!-- What did your distances look like when you set the cutoff in Milestone 4?
      Was there a clean gap, or did the two groups overlap? -->
-
+ I chose 4 out of 5 because the system should recognize and reject most questions that have nothing to do with my documents. I allowed one mistake because the relevance gate may occasionally find an unrelated chunk that appears similar to the question.
 ---
 
 ## 4. Something about your chunks
@@ -69,11 +69,11 @@ in at least 4 of 5 tries.
        - "No chunk is shorter than 200 characters, since anything below that
           in my corpus turned out to be a heading with no content under it." -->
 
-
+At least 4 of the 5 sampled chunks should read as a complete thought without important information being cut off.
 
 **Why this target:**
 
-
+I chose 4 out of 5 because the campus life documents are short and usually explain their main information in only a few sentences. I want the chunks to keep enough of those sentences together so they make sense on their own, while allowing for one chunk that may not split perfectly.
 
 ---
 
@@ -87,10 +87,10 @@ in at least 4 of 5 tries.
      present — anything, as long as it names a number or an observable
      outcome. -->
 
-
+For at least 4 of my 5 test questions, the source named in the answer should actually contain the information used to answer the question.
 
 **Why this target:**
-
+I chose 4 out of 5 because naming a source is only useful if that source actually supports the answer. I expect the system to connect most answers to the correct document, but I allowed for one mistake in case it retrieves similar information from another document.
 
 
 ---
