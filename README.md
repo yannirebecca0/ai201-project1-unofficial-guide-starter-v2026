@@ -103,11 +103,14 @@ Laundry costs $1.75 wash, $1.75 dry, app-based. On noise: moderate; the building
 <!-- One complete question and answer, pasted as text, with the source line
      visible. Milestone 4. -->
 
-**Question:**
+**Question:** How many hours per week outside of class should students expect to spend on CS 210?
+
 
 **Answer:**
 
 ```
+Students should expect to spend 8 to 10 hours a week outside of class on CS 210.
+Sources: `course_cs_210_workload.txt` and `course_cs_210.txt`
 ```
 
 **My relevance cutoff:**
@@ -121,9 +124,20 @@ Laundry costs $1.75 wash, $1.75 dry, app-based. On noise: moderate; the building
 
      Milestone 4. -->
 
+0.6 -- I kept the relevance cutoff at 0.6 after testing all five in-corpus questions and all five out-of-scope questions. The in-corpus distances ranged from 0.209 to 0.386, while the out-of-scope distances ranged from 0.825 to 0.932. There was a large gap between the highest in-corpus distance, 0.386, and the lowest out-of-scope distance, 0.825, so 0.6 sits safely between the two groups.
+
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| How many hours per week outside of class should students expect to spend on CS 210? | Yes | 0.281 |
+| How many hours per week should students expect to spend on PHYS 130 during lab weeks? | Yes | 0.249 |
+| How are students assessed in MATH 220 Linear Algebra? | Yes | 0.386 |
+| How many hours per week outside of class should students expect to spend on STAT 150? | Yes | 0.263 |
+| When should students start the term project for CS 340 Databases? | Yes | 0.209 |
+| What is the capital of Mongolia? | No | 0.825 |
+| What happens if I put oil in a diesel engine? | No | 0.932 |
+| Who won the 1994 World Cup? | No | 0.886 |
+| What is the recommended dosage of ibuprofen? | No | 0.832 |
+| How do I write a for loop in Rust? | No | 0.896 |
 
 ## How I Used AI
 
