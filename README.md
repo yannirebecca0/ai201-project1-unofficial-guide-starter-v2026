@@ -105,10 +105,6 @@ Sources: `course_cs_210_workload.txt` and `course_cs_210.txt`
 
 1. I asked AI to explain the starter chunker.py code and give me a few possible chunking strategies for the campus_life corpus. It suggested keeping each short post as one chunk because most of the documents were already small and focused on one topic. Instead of just using the suggestion, I checked the corpus statistics and printed 5 sample chunks. After seeing that the documents averaged about 317 characters and the samples were complete thoughts, I decided to use one document per chunk with no overlap. Another time is also when I asked AI to help me interpret the retrieval distances I recorded while testing my relevance cutoff. It suggested comparing the highest distance from my in-corpus questions with the lowest distance from my out-of-scope questions instead of changing the cutoff just because it was the starter value. My in-corpus results ranged from 0.209–0.386 and my out-of-scope results ranged from 0.825–0.932. Based on those results, I decided not to change the 0.6 cutoff because it already fell clearly between the 2 groups.
 
-**1.**
-
-**2.**
-
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
      claims earns nothing.
