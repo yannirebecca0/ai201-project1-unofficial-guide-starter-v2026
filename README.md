@@ -240,7 +240,11 @@ The named sources contained the information used in the answer for all five test
 
 **What I changed:**
 
+I lowered the relevance threshold from 0.6 to 0.5 in `config.py`.
+
 **Why I picked it:**
+
+My baseline testing showed that the highest in-corpus distance was around like 0.386, while the lowest out-of-scope distance was about 0.825. Since there was a large gap between the 2 groups, I made the relevance gate more conservative by lowering the cutoff to 0.5 while still leaving room above every in-corpus test question.
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
@@ -252,11 +256,15 @@ The named sources contained the information used in the answer for all five test
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunks contain the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Sampled chunks read as complete thoughts | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Named source contains the information used | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+
+The stricter 0.5 relevance threshold preserved the same results as the baseline. All five in-corpus questions passed in all three runs, and the gate refused all five out-of-scope questions.
+
+Results file: `results/run_2026-09-25_1815_after.md`
 
 **Did it help?**
 
@@ -266,6 +274,7 @@ The named sources contained the information used in the answer for all five test
      tell.
 
      Milestone 4. -->
+Yes ie helped, the change made the relevance gate stricter without reducing performance on my test set. Before and after this change, all 5 in-corpus questions passed in all 3 runs and all 5 out-of-scope questions werent accepted. The improvement did not increase the number of criteria met because the baseline already met all 5 criteria, but it made the system more like conservative about answering questions with weaker retrieval matches.
 
 ## What's Still Broken
 
