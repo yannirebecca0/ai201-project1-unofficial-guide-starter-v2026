@@ -105,30 +105,15 @@ Sources: `course_cs_210_workload.txt` and `course_cs_210.txt`
 
 1. I asked AI to explain the starter chunker.py code and give me a few possible chunking strategies for the campus_life corpus. It suggested keeping each short post as one chunk because most of the documents were already small and focused on one topic. Instead of just using the suggestion, I checked the corpus statistics and printed 5 sample chunks. After seeing that the documents averaged about 317 characters and the samples were complete thoughts, I decided to use one document per chunk with no overlap. Another time is also when I asked AI to help me interpret the retrieval distances I recorded while testing my relevance cutoff. It suggested comparing the highest distance from my in-corpus questions with the lowest distance from my out-of-scope questions instead of changing the cutoff just because it was the starter value. My in-corpus results ranged from 0.209–0.386 and my out-of-scope results ranged from 0.825–0.932. Based on those results, I decided not to change the 0.6 cutoff because it already fell clearly between the 2 groups.
 
-<!-- ── Stretch features ─────────────────────────────────────────────────────
-     Doing one? Say so here BEFORE you start. A feature this README never
-     claims earns nothing.
-     ───────────────────────────────────────────────────────────────────────── -->
-
 ---
 
 # Unit 2
 
-<!-- These sections get ADDED to what's already above. Don't delete or rewrite
-     unit 1 — the point is that someone can see what you said before you knew
-     how it went. -->
+## How I Use AI
+
+1. I used AI to help me organize and interpret my Unit 2 testing results, but I made the final decisions based on the actual output from my system.  Since all 5 criteria passed, there was not a failed stage to fix. Instead, I used the measured gap between the in-corpus distances of about 0.209–0.386 and the out-of-scope distances of about 0.825–0.934 to decide on a stricter relevance gate. AI suggested a few possible changes, including changing the prompt or retrieval settings so I checked the actual code in `config.py`, `store.py`, and `generate.py` before choosing anything. I decided to make only one system change by lowering the relevance threshold from 0.6 to 0.5. I then ran the full evaluation again instead of assuming the change helped. The after results showed that all 5 in-corpus questions still passed in all 3 runs and all 5 out-of-scope questions were still refused. 
 
 ## Run Log — Before
-
-<!-- Your five criteria, three runs each. `python run_eval.py --label before`
-     runs the questions, puts the OUT_OF_SCOPE ones through the gate, and
-     writes it all into results/ for you. Targets come from criteria.md; the
-     verdict column is your call.
-
-     Criterion 3 is measured in one deterministic pass rather than three, so
-     the same number goes in all three run columns. That's correct, not lazy.
-
-     Milestone 1. -->
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
@@ -138,10 +123,6 @@ Sources: `course_cs_210_workload.txt` and `course_cs_210.txt`
 | 4. Sampled chunks read as complete thoughts | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 | 5. Named source contains the information used | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
-
-<!-- Underneath, paste the REAL output for each criterion from one of your
-     runs — the actual text your system produced, not a description of it.
-     Name the file and function that produced it. -->
 
 ### Real Output — Before
 
@@ -194,15 +175,6 @@ The named sources contained the information used in the answer for all five test
 
 ## Verdicts
 
-<!-- MET or MISSED for each of the five, against the target you wrote last
-     unit — not a new one. Plus a sentence on how you decided. That sentence
-     matters most where it was close.
-
-     If your target said 4 of 5 and your runs came out 4, 3, 4, that's a MISS.
-     The target has to hold, not show up occasionally.
-
-     Milestone 2. -->
-
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
 | 1 | Retrieved chunks contain the answer | MET | All 5 test questions retrieved chunks containing the expected information in all three runs, which is above my target of 4 out of 5. |
@@ -213,28 +185,8 @@ The named sources contained the information used in the answer for all five test
 
 ## Diagnoses
 
-<!-- For each miss: which stage caused it, and how. The stage alone isn't
-     enough — you need the mechanism.
-
-     Not a diagnosis: "Question 3 didn't work."
-     A diagnosis:     "Question 3 asks about laundry costs. The answer is in
-                       one sentence that got split across two chunks, so
-                       neither chunk on its own contains it."
-
-     The five stages: loading → chunking → embedding → retrieval → generation.
-
-     Look for a pattern. If three misses all ask about numbers, that's one
-     problem, not three.
-
-     Missed nothing? Say so, then say honestly whether your targets were set
-     low, and which one you'd tighten and to what.
-
-     Milestone 3. -->
-     No criteria were missed during the baseline evaluation, so there was no failed pipeline stage to diagnose. All 5 in-corpus questions passed in all 3 runs, and the relevance gate also refused all 5 out-of-scope questions.
-
-     Looking at the results, some of my original targets were probably a little safe. Criteria 1, 4, and 5 only required 4 out of 5 even though the system achieved 5 out of 5 during testing. If I were making the criteria stricter, I would tighten Criterion 1 from 4 out of 5 to 5 out of 5 because retrieving the correct information is necessary before the model can generate a grounded answer.
-
-     Even though nothing failed, the retrieval distances still give me something useful to examine. The 5 in-corpus questions had best distances between about 0.209 and 0.386, while the out-of-scope questions had distances between about 0.825 and 0.934. This left a large gap around the current 0.6 relevance cutoff.
+No criteria were missed during the baseline evaluation, so there was no failed pipeline stage to diagnose. All 5 in-corpus questions passed in all 3 runs, and the relevance gate also refused all 5 out-of-scope questions. Looking at the results, some of my original targets were probably a little safe. Criteria 1, 4, and 5 only required 4 out of 5 even though the system achieved 5 out of 5 during testing. If I were making the criteria stricter, I would tighten Criterion 1 from 4 out of 5 to 5 out of 5 because retrieving the correct information is necessary before the model can generate a grounded answer.
+Even though nothing failed, the retrieval distances still give me something useful to examine. The 5 in-corpus questions had best distances between about 0.209 and 0.386, while the out-of-scope questions had distances between about 0.825 and 0.934. This left a large gap around the current 0.6 relevance cutoff.
 
 ## The Improvement
 
@@ -246,13 +198,8 @@ I lowered the relevance threshold from 0.6 to 0.5 in `config.py`.
 
 My baseline testing showed that the highest in-corpus distance was around like 0.386, while the lowest out-of-scope distance was about 0.825. Since there was a large gap between the 2 groups, I made the relevance gate more conservative by lowering the cutoff to 0.5 while still leaving room above every in-corpus test question.
 
-<!-- Connect it to a specific diagnosis above in one sentence. If you can't,
-     you picked a fix because it sounded impressive. -->
 
 ### Run Log — After
-
-<!-- Same format, same five criteria, three runs each.
-     `python run_eval.py --label after` -->
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
@@ -268,27 +215,12 @@ Results file: `results/run_2026-09-25_1815_after.md`
 
 **Did it help?**
 
-<!-- Say plainly whether it did, and how you know. If it made things worse,
-     say that — a change that backfired, honestly reported, earns full credit
-     and is more interesting than one that worked. What matters is that you can
-     tell.
-
-     Milestone 4. -->
-Yes ie helped, the change made the relevance gate stricter without reducing performance on my test set. Before and after this change, all 5 in-corpus questions passed in all 3 runs and all 5 out-of-scope questions werent accepted. The improvement did not increase the number of criteria met because the baseline already met all 5 criteria, but it made the system more like conservative about answering questions with weaker retrieval matches.
+Yes it helped, the change made the relevance gate stricter without reducing performance on my test set. Before and after this change, all 5 in-corpus questions passed in all 3 runs and all 5 out-of-scope questions werent accepted. The improvement did not increase the number of criteria met because the baseline already met all 5 criteria, but it made the system more like conservative about answering questions with weaker retrieval matches.
 
 ## What's Still Broken
 
-<!-- For each criterion still missed after your fix: what you'd do about it,
-     and why you stopped where you did.
-
-     "I ran out of time" is fine if it's true. Pretending nothing is left is
-     not.
-
-     Milestone 5. -->
+None of my five acceptance criteria were still missed after the improvement but this doesn't mean the system will work perfectly for every possible question. My evaluation only uses five in-corpus questions and five out-of-scope questions, so there could still be questions that fall closer to the 0.5 relevance threshold or retrieve a related document that does not actually contain enough information to answer correctly so I stopped after the one threshold change because Unit 2 had asked for one diagnosis-driven improvement, and the after evaluation showed that the stricter gate preserved the performance of the baseline system.
 
 ## What I'd Do Differently
 
-<!-- Knowing what you know now — which of your five criteria would you write
-     differently, and why?
-
-     Milestone 5. -->
+If I started over, I would probably make my original acceptance criteria a little more stricter because a lot of my targets were lower than what the system consistently achieved. For example, I would require Criterion 1 to retrieve the answer for 5 out of 5 test questions instead of 4 out of 5. I would also test more questions near the relevance boundary instead of just only using questions that were clearly in-scope or clearly out-of-scope. This would give me better evidence for choosing the relevance threshold and help reveal cases where a question is related to campus life but the retrieved documents do not have enough info to answer it.
