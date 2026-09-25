@@ -132,15 +132,65 @@ Sources: `course_cs_210_workload.txt` and `course_cs_210.txt`
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunks contain the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Sampled chunks read as complete thoughts | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Named source contains the information used | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
+
+### Real Output — Before
+
+**Results file:** `results/run_2026-09-23_2034_before.md`  
+**Scoring function:** `judge()` in `scorer.py`
+
+**Criterion 1 — Retrieved chunks contain the answer**
+
+For the CS 210 question, the system retrieved `course_cs_210.txt` and `course_cs_210_workload.txt` with a best distance of 0.2814.
+
+> Students should expect to spend 8 to 10 hours a week outside of class on CS 210.
+
+All five test questions retrieved a chunk containing the expected answer in each run.
+
+**Criterion 2 — Every answer names a source**
+
+For the PHYS 130 question, the system produced:
+
+> Students should expect to spend 10 hours a week on PHYS 130 during lab weeks (7 hours a week, plus 3 on lab weeks).
+>
+> Source: `course_phys_130.txt` and `course_phys_130_workload.txt`
+
+All five answers named at least one source in each run.
+
+**Criterion 3 — Gate stops out-of-corpus questions**
+
+The relevance gate produced:
+
+```text
+refused (best distance 0.825) What is the capital of Mongolia?
+refused (best distance 0.934) How do I change the oil in a diesel engine?
+refused (best distance 0.886) Who won the 1994 World Cup?
+refused (best distance 0.844) What is the recommended dosage of ibuprofen for a headache?
+refused (best distance 0.896) How do I write a for loop in Rust?
+```
+
+The gate refused 5 of 5 out-of-scope questions.
+
+**Criterion 4 — Sampled chunks read as complete thoughts**
+
+The sampled chunks kept the relevant information together without cutting off the information needed to understand the chunk. All 5 sampled chunks read as complete thoughts, which matched the complete-document chunking strategy from Unit 1.
+
+**Criterion 5 — Named source contains the information used**
+
+For the CS 340 question, the system produced:
+
+> Students should start the term project in week three, not week eight (`course_cs_340.txt` and `course_cs_340_exams.txt`).
+
+The named sources contained the information used in the answer for all five test questions.
 
 ## Verdicts
 
