@@ -205,11 +205,11 @@ The named sources contained the information used in the answer for all five test
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunks contain the answer | MET | All 5 test questions retrieved chunks containing the expected information in all three runs, which is above my target of 4 out of 5. |
+| 2 | Every answer names a source | MET | All 5 answers named at least one source document in all three runs, meeting my target of 5 out of 5. |
+| 3 | Gate stops out-of-corpus questions | MET | The relevance gate refused all 5 out-of-scope questions, which is above my target of 4 out of 5. |
+| 4 | Sampled chunks read as complete thoughts | MET | All 5 sampled chunks kept the important information together and could be understood on their own, which is above my target of 4 out of 5. |
+| 5 | Named source contains the information used | MET | For all 5 test questions, the source named in the answer contained the information used to answer the question, which is above my target of 4 out of 5. |
 
 ## Diagnoses
 
