@@ -230,6 +230,11 @@ The named sources contained the information used in the answer for all five test
      low, and which one you'd tighten and to what.
 
      Milestone 3. -->
+     No criteria were missed during the baseline evaluation, so there was no failed pipeline stage to diagnose. All 5 in-corpus questions passed in all 3 runs, and the relevance gate also refused all 5 out-of-scope questions.
+
+     Looking at the results, some of my original targets were probably a little safe. Criteria 1, 4, and 5 only required 4 out of 5 even though the system achieved 5 out of 5 during testing. If I were making the criteria stricter, I would tighten Criterion 1 from 4 out of 5 to 5 out of 5 because retrieving the correct information is necessary before the model can generate a grounded answer.
+
+     Even though nothing failed, the retrieval distances still give me something useful to examine. The 5 in-corpus questions had best distances between about 0.209 and 0.386, while the out-of-scope questions had distances between about 0.825 and 0.934. This left a large gap around the current 0.6 relevance cutoff.
 
 ## The Improvement
 
