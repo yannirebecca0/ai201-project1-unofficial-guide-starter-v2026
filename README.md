@@ -241,6 +241,24 @@ Out of scope:
 - I am not altering the generation prompt templates or adding new retrieval strategies in `generate.py`.
 - I am not building a custom frontend interface or adding automated retry/fallback loops beyond logging failures when they occur.
 
+**Run Log and Verdicts**
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Warm end-to-end latency on `/ask` stays under 2.0s | 9 of 10 | 8/10 | 8/10 | 2/10 | MISSED |
+| 2. Every `/ask` request writes a complete 14-field JSONL record | 10 of 10 | 10/10 | 10/10 | 10/10 | MET |
+| 3. Token instrumentation reports non-zero tokens on 5/5 in-corpus & 0 on 5/5 OOS | 10 of 10 | 10/10 | 10/10 | 9/10 | MISSED |
+| 4. Bad/missing input returns HTTP 400 + logs `bad_request` | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Out-of-scope queries refused (`refused: true`, `best_distance > 0.5`) | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+
+Actual log lines from Run 3 (produced by `serve.py::ask()` and written by `serve.py::_log_run()` to `logs/runs.jsonl`), showing one example per criterion (including a slow response for Criterion 1, a `503 UNAVAILABLE` error that caused a `0`-token `HTTP 500` record for Criterion 3, a `400 bad_request` for Criterion 4, and an out-of-scope gate refusal for Criterion 5):
+
+```json
+{"timestamp": "2026-11-16T22:17:50.778107+00:00", "corpus": "campus_life", "question": "How many hours per week outside of class should students expect to spend on CS 210?", "status": "ok", "http_status": 200, "refused": false, "answer": "Students should expect to spend 8 to 10 hours a week outside of class on CS 210 (Source: course_cs_210_workload.txt and course_cs_210.txt).", "sources": ["course_cs_210.txt", "course_cs_210_workload.txt", "course_cs_340.txt", "course_econ_101_workload.txt", "course_stat_150_workload.txt"], "best_distance": 0.2814, "latency_ms": 4389.56, "prompt_tokens": 617, "output_tokens": 49, "total_tokens": 666, "error": null}
+{"timestamp": "2026-11-16T22:18:14.555116+00:00", "corpus": "campus_life", "question": "When should students start the term project for CS 340 Databases?", "status": "error", "http_status": 500, "refused": null, "answer": null, "sources": [], "best_distance": null, "latency_ms": 9072.13, "prompt_tokens": 0, "output_tokens": 0, "total_tokens": 0, "error": "ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"}
+{"timestamp": "2026-11-16T22:18:56.507104+00:00", "corpus": "campus_life", "question": "What is the capital of Mongolia?", "status": "refused", "http_status": 200, "refused": true, "answer": "I don't have enough information about that.", "sources": [], "best_distance": 0.8246, "latency_ms": 85.59, "prompt_tokens": 0, "output_tokens": 0, "total_tokens": 0, "error": null}
+{"timestamp": "2026-11-16T22:18:56.805600+00:00", "corpus": "campus_life", "question": "", "status": "bad_request", "http_status": 400, "refused": null, "answer": null, "sources": [], "best_distance": null, "latency_ms": 0.02, "prompt_tokens": 0, "output_tokens": 0, "total_tokens": 0, "error": "Send JSON with a question in it, like {\"question\": \"is the housing lottery random?\"}"}
+
 **Running It**
 
 Path B — Local with logs. See `RUNNING.md` for the Python version requirement (`3.11`–`3.13`), pinned dependencies (`requirements.txt`), bundled ONNX embedding model details (`all-MiniLM-L6-v2`, ~80 MB), clean-checkout setup steps, and the single command to index and start Gunicorn (`python app.py index && gunicorn serve:app --workers 1 --bind 127.0.0.1:5000`).
