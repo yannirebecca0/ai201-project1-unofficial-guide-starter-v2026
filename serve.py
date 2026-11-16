@@ -1,51 +1,37 @@
 #!/usr/bin/env python3
 """
-The Unofficial Guide — the same pipeline, over HTTP.
+The Unofficial Guide — the same pipeline, over HTTP, with structured logging.
 
     python serve.py                          run it locally on port 5000
-    gunicorn serve:app                       run it the way a host runs it
-
-Nothing new happens in this file. It is a wrapper: a request comes in, it
-hands the question to `app.py::ask_pipeline` — the exact function the command
-line uses — and hands the answer back as JSON. Retrieval, the relevance gate
-and the grounded prompt all still live where they lived. If you change how
-your system answers, you change it in those files and this one follows.
-
-Two routes:
-
-    POST /ask       {"question": "..."} in, the answer and its sources out
-    GET  /health    is the service up, and is there an index to search
-
-Why this exists: `app.py` runs once and exits, which is fine on your laptop
-and impossible to deploy. A hosted service has to stay up and wait for
-requests. This is the smallest thing that does that.
-
-⚠️ There is deliberately no logging, no timing and no metrics in this file.
-Unit 9 has you build the structured log yourself — the request line, the
-timing field everyone skips, the whole instrument-before-you-deploy exercise.
-Shipping a logger here would hand you the answer to that. Add yours in unit 9;
-this file stays the bare shell until then.
+    gunicorn serve:app --workers 1           run it the way a host runs it
 """
 
+from datetime import datetime, timezone
+import json
 import os
+from pathlib import Path
+import time
 
 from flask import Flask, jsonify, request
 
 import config
+import generate
 
 app = Flask(__name__)
+
+LOG_PATH = Path(os.getenv("RUN_LOG_PATH", "logs/runs.jsonl"))
+
+
+def _write_log(record: dict) -> None:
+    """Append one structured JSON record to LOG_PATH."""
+    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with LOG_PATH.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
 @app.get("/health")
 def health():
-    """Is the service up, and is there an index to search?
-
-    Two different questions, and the second one is the one that bites. A
-    freshly deployed service answers this route happily while every /ask
-    returns "no index" — hosts give you no disk that survives a restart, so
-    the index has to be built as part of getting the service up. Checking
-    here means you find that out in one request instead of five.
-    """
+    """Is the service up, and is there an index to search?"""
     from store import index_exists
 
     ready = index_exists(config.CORPUS)
@@ -63,34 +49,109 @@ def health():
     )
 
 
+@app.get("/logs")
+def logs():
+    """Return structured log records so they can be inspected/copied on Path A."""
+    if not LOG_PATH.exists():
+        return jsonify({"count": 0, "entries": []})
+
+    limit = request.args.get("limit", default=50, type=int)
+    lines = LOG_PATH.read_text(encoding="utf-8").splitlines()
+    entries = []
+    for line in lines[-limit:]:
+        if line.strip():
+            entries.append(json.loads(line))
+    return jsonify({"count": len(entries), "entries": entries})
+
+
 @app.post("/ask")
 def ask():
-    """One question in, one grounded answer out.
-
-    A refused question is a 200, not an error. The gate refusing is your
-    system working — it is an answer, and the JSON says so with
-    `"refused": true` so whatever calls this can tell the two apart.
-    """
+    """One question in, one grounded answer out, with structured instrumentation."""
     from app import ask_pipeline
+
+    started_at = datetime.now(timezone.utc).isoformat()
+    t0 = time.perf_counter()
 
     payload = request.get_json(silent=True) or {}
     question = (payload.get("question") or "").strip()
 
     if not question:
-        return (
-            jsonify(
-                {
-                    "error": "Send JSON with a question in it, like "
-                    '{"question": "is the housing lottery random?"}'
-                }
-            ),
-            400,
+        latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+        error_msg = (
+            "Send JSON with a question in it, like "
+            '{"question": "is the housing lottery random?"}'
         )
+        _write_log(
+            {
+                "timestamp": started_at,
+                "corpus": config.CORPUS,
+                "question": "",
+                "status": "bad_request",
+                "http_status": 400,
+                "refused": None,
+                "answer": None,
+                "sources": [],
+                "best_distance": None,
+                "latency_ms": latency_ms,
+                "prompt_tokens": 0,
+                "output_tokens": 0,
+                "total_tokens": 0,
+                "error": error_msg,
+            }
+        )
+        return jsonify({"error": error_msg}), 400
+
+    tokens_before = generate.token_counts()
 
     try:
         outcome = ask_pipeline(question, corpus=config.CORPUS)
     except Exception as exc:  # noqa: BLE001 — a reader gets this, not a traceback
-        return jsonify({"error": f"{type(exc).__name__}: {exc}"}), 500
+        latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+        tokens_after = generate.token_counts()
+        error_msg = f"{type(exc).__name__}: {exc}"
+        _write_log(
+            {
+                "timestamp": started_at,
+                "corpus": config.CORPUS,
+                "question": question,
+                "status": "error",
+                "http_status": 500,
+                "refused": None,
+                "answer": None,
+                "sources": [],
+                "best_distance": None,
+                "latency_ms": latency_ms,
+                "prompt_tokens": tokens_after["prompt"] - tokens_before["prompt"],
+                "output_tokens": tokens_after["output"] - tokens_before["output"],
+                "total_tokens": tokens_after["total"] - tokens_before["total"],
+                "error": error_msg,
+            }
+        )
+        return jsonify({"error": error_msg}), 500
+
+    latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+    tokens_after = generate.token_counts()
+    prompt_tokens = tokens_after["prompt"] - tokens_before["prompt"]
+    output_tokens = tokens_after["output"] - tokens_before["output"]
+    total_tokens = tokens_after["total"] - tokens_before["total"]
+
+    record = {
+        "timestamp": started_at,
+        "corpus": config.CORPUS,
+        "question": question,
+        "status": "refused" if outcome["refused"] else "ok",
+        "http_status": 200,
+        "refused": outcome["refused"],
+        "answer": outcome["answer"],
+        "sources": outcome["sources"],
+        "best_distance": round(outcome["best_distance"], 4),
+        "latency_ms": latency_ms,
+        "prompt_tokens": prompt_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": total_tokens,
+        "error": None,
+    }
+    _write_log(record)
 
     return jsonify(
         {
@@ -101,34 +162,22 @@ def ask():
             "best_distance": round(outcome["best_distance"], 4),
             "threshold": outcome["threshold"],
             "corpus": config.CORPUS,
+            "latency_ms": latency_ms,
+            "tokens": {
+                "prompt": prompt_tokens,
+                "output": output_tokens,
+                "total": total_tokens,
+            },
         }
     )
 
 
 def main():
-    # Hosts tell you which port to listen on through PORT, and they expect you
-    # on 0.0.0.0. Binding 127.0.0.1 instead works perfectly on your laptop and
-    # then answers nothing at all once deployed, because the host's router
-    # can't reach a socket that only accepts connections from inside the
-    # container. It is the single most common way a first deploy "succeeds"
-    # and is unreachable.
     port = int(os.getenv("PORT", "5000"))
-
-    # Debug mode reloads on save, which is handy, and prints a console that
-    # runs arbitrary code, which is not something to leave switched on where
-    # strangers can reach it. Off unless you ask for it.
     debug = os.getenv("AI201_DEBUG", "0") == "1"
 
     print(f"Serving The Unofficial Guide on http://localhost:{port}")
     print(f"Corpus: {config.CORPUS}    (Ctrl-C to stop)\n")
-    print("Try it from another terminal:\n")
-    print(f"  curl http://localhost:{port}/health")
-    print(
-        f"  curl -X POST http://localhost:{port}/ask \\\n"
-        f"    -H 'Content-Type: application/json' \\\n"
-        f"    -d '{{\"question\": \"is the housing lottery random?\"}}'\n"
-    )
-
     app.run(host="0.0.0.0", port=port, debug=debug)
 
 
