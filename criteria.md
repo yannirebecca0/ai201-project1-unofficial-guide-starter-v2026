@@ -130,3 +130,19 @@ I chose 4 out of 5 because naming a source is only useful if that source actuall
      The whole reason the originals stay visible is so someone can see what you
      said before you knew the answer.
      ───────────────────────────────────────────────────────────────────────── -->
+## Unit 9 Capstone Criteria
+
+1. **Warm end-to-end latency on `/ask` stays under 2.0 seconds for at least 9 of 10 uncached in-corpus requests.**
+   - *Why this target:* Across my initial 10 uncached runs, average latency was `1,460 ms`, with 9 of 10 finishing between `605 ms` and `1,648 ms` and one Gemini API spike reaching `4,437 ms`. Setting a 2.0-second ceiling at `9 of 10` absorbs occasional upstream Gemini API jitter while catching genuine regressions or cold-start delays on warm requests without making the bar so loose (`5 seconds`) that every run passes automatically.
+
+2. **Every `/ask` request writes a complete, valid JSONL record to `logs/runs.jsonl` with all 14 required fields (`timestamp`, `corpus`, `question`, `status`, `http_status`, `refused`, `answer`, `sources`, `best_distance`, `latency_ms`, `prompt_tokens`, `output_tokens`, `total_tokens`, `error`) in 10 of 10 runs.**
+   - *Why this target:* Observability only works if no request disappears silently or writes malformed JSON. A `10 of 10` target is strict because file-append logging in `serve.py` is deterministic and any missing record or missing key would break post-run log analysis.
+
+3. **Token instrumentation in `logs/runs.jsonl` reports non-zero `prompt_tokens`, `output_tokens`, and `total_tokens` (`prompt_tokens + output_tokens == total_tokens`) on 5 of 5 uncached in-corpus `/ask` calls, and `0` tokens on 5 of 5 gate-refused out-of-scope calls.**
+   - *Why this target:* My cost measurement depends on `generate.token_counts()` deltas accurately capturing Gemini API usage when a call reaches the model and confirming zero model spend when `gate.py` refuses an out-of-scope query at the `0.5` cutoff. Anything less than `5 of 5` means token accounting or the gate bypass is broken.
+
+4. **Failure path — Bad or missing input on `POST /ask` (empty JSON `{}`, blank `{"question": "   "}`, or non-JSON body) returns HTTP `400` with an `error` message and appends a `status: "bad_request"` record to `logs/runs.jsonl` in 5 of 5 requests.**
+   - *Why this target:* Client input errors should never trigger an unhandled Python exception (`HTTP 500`) or go unlogged. `5 of 5` is required because input validation in `serve.py` runs before retrieval or model generation and should handle every malformed payload predictably.
+
+5. **Out-of-scope queries on `POST /ask` are refused (`refused: true`, `http_status: 200`, `best_distance > 0.5`) with the standard refusal string in 5 of 5 requests.**
+   - *Why this target:* Wrapping the RAG pipeline in Flask/Gunicorn must preserve the `0.5` relevance gate tuned in Unit 2 so off-topic HTTP requests do not hallucinate answers or waste Gemini tokens. `5 of 5` matches my baseline gate performance while verifying zero regression in the HTTP wrapper.
