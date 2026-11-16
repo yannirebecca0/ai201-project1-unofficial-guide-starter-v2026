@@ -234,9 +234,12 @@ def generate(prompt: str, system: str | None = None, cache: bool = True) -> str:
             _call_times.append(time.monotonic())
             _session_calls += 1
 
-            kwargs = {"model": config.MODEL, "contents": prompt}
-            if system:
-                kwargs["config"] = {"system_instruction": system}
+            from google.genai import types
+            gen_config = types.GenerateContentConfig(
+                system_instruction=system,
+                max_output_tokens=200,
+            )
+            kwargs = {"model": config.MODEL, "contents": prompt, "config": gen_config}
 
             response = client.models.generate_content(**kwargs)
             _record_tokens(response)
@@ -251,6 +254,8 @@ def generate(prompt: str, system: str | None = None, cache: bool = True) -> str:
             message = str(exc).lower()
             rate_limited = (
                 "429" in message
+                or "503" in message
+                or "unavailable" in message
                 or "resource" in message and "exhaust" in message
                 or "rate" in message and "limit" in message
             )
