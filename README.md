@@ -224,3 +224,17 @@ None of my five acceptance criteria were still missed after the improvement but 
 ## What I'd Do Differently
 
 If I started over, I would probably make my original acceptance criteria a little more stricter because a lot of my targets were lower than what the system consistently achieved. For example, I would require Criterion 1 to retrieve the answer for 5 out of 5 test questions instead of 4 out of 5. I would also test more questions near the relevance boundary instead of just only using questions that were clearly in-scope or clearly out-of-scope. This would give me better evidence for choosing the relevance threshold and help reveal cases where a question is related to campus life but the retrieved documents do not have enough info to answer it.
+
+
+## Capstone
+
+**What This Extends**
+This extends my Project 1 system, **The Unofficial Guide** (`ai201-project1-unofficial-guide-starter-v2026`), a RAG question-answering pipeline over the 88-document `campus_life` corpus that embeds one full post per chunk (`chunker.py`), filters out-of-scope queries using a 0.5 distance cutoff (`config.py`, `store.py`), and generates source-cited answers (`generate.py`). The extension wraps this existing pipeline in a hosted HTTP service with structured JSON logging and per-run latency and cost instrumentation.
+
+**The Shape**
+Shape A — Deploy and instrument (Path A: Hosted). I am adding a lightweight web API wrapper around the existing `campus_life` RAG pipeline so it runs on a public URL outside my editor, writes a structured JSON log record for every request (timestamp, query, retrieved distance/sources, answer, end-to-end latency, token/compute cost, and error status), and measures per-run cost across repeated trials.
+
+Out of scope:
+- I am not changing the one-document-per-chunk strategy in `chunker.py`, the vector store in `store.py`, or the 0.5 relevance threshold in `config.py`.
+- I am not altering the generation prompt templates or adding new retrieval strategies in `generate.py`.
+- I am not building a custom frontend interface or adding automated retry/fallback loops beyond logging failures when they occur.
